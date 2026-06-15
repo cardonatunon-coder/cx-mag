@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CX MAG — Speaker Lab | Cámara de Comercio de Cartagena</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --orange: #E8521A;
+    --navy: #1B2A5E;
+    --bg: #0d1526;
+  }
+
+  body {
+    background: var(--bg);
+    color: #fff;
+    font-family: Arial, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── HEADER ── */
+  #header {
+    background: linear-gradient(90deg, var(--navy), var(--orange));
+    padding: 16px 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 4px 20px rgba(0,0,0,.5);
+    flex-shrink: 0;
+  }
+  #header .eyebrow { font-size: 15px; letter-spacing: 2px; text-transform: uppercase; opacity: .75; margin-bottom: 3px; }
+  #header h1 { font-size: 22px; font-weight: 700; }
+  #pct-badge {
+    background: rgba(255,255,255,.15);
+    border-radius: 10px;
+    padding: 7px 18px;
+    text-align: center;
+    min-width: 90px;
+  }
+  #pct-badge .big { font-size: 28px; font-weight: 700; color: #fbbf24; display: block; }
+  #pct-badge .small { font-size: 15px; opacity: .7; }
+
+  /* ── META BAR ── */
+  #meta-bar {
+    background: rgba(255,255,255,.04);
+    border-bottom: 1px solid rgba(255,255,255,.08);
+    padding: 11px 28px;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-shrink: 0;
+  }
+  #meta-bar input {
+    background: rgba(255,255,255,.09);
+    border: 1px solid rgba(255,255,255,.18);
+    border-radius: 7px;
+    padding: 7px 12px;
+    color: #fff;
+    font-size: 15px;
+    outline: none;
+    transition: border .2s;
+  }
+  #meta-bar input:focus { border-color: var(--orange); }
+  #meta-bar input::placeholder { color: rgba(255,255,255,.35); }
+  #inp-nombre { flex: 1; }
+  #inp-empresa { flex: 2; }
+  #fields-count { font-size: 15px; opacity: .5; white-space: nowrap; margin-left: auto; }
+
+  /* ── PROGRESS BAR ── */
+  #progress-track { height: 5px; background: rgba(255,255,255,.08); flex-shrink: 0; }
+  #progress-fill { height: 100%; width: 0%; background: linear-gradient(90deg, var(--navy), var(--orange)); border-radius: 0 3px 3px 0; transition: width .5s ease; }
+
+  /* ── LAYOUT ── */
+  #body {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  /* ── SIDEBAR ── */
+  #sidebar {
+    width: 230px;
+    background: rgba(0,0,0,.28);
+    border-right: 1px solid rgba(255,255,255,.07);
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    overflow-y: auto;
+  }
+  .nav-btn {
+    background: transparent;
+    border: none;
+    border-left: 4px solid transparent;
+    padding: 13px 16px;
+    cursor: pointer;
+    text-align: left;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: background .15s, border-color .15s;
+  }
+  .nav-btn:hover { background: rgba(255,255,255,.04); }
+  .nav-btn.active { border-left-color: var(--btn-color); background: rgba(255,255,255,.06); }
+  .nav-btn .nav-icon { font-size: 22px; flex-shrink: 0; }
+  .nav-btn .nav-info { flex: 1; min-width: 0; }
+  .nav-btn .nav-num { font-size: 15px; font-weight: 700; color: rgba(255,255,255,.55); margin-bottom: 1px; }
+  .nav-btn .nav-title { font-size: 15px; font-weight: 700; color: rgba(255,255,255,.8); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .nav-btn.active .nav-title { color: #fff; }
+  .nav-mini-bar { height: 3px; background: rgba(255,255,255,.1); border-radius: 2px; margin-top: 5px; overflow: hidden; }
+  .nav-mini-fill { height: 100%; border-radius: 2px; transition: width .3s; }
+
+  #sidebar-foot {
+    margin-top: auto;
+    border-top: 1px solid rgba(255,255,255,.07);
+    padding: 14px 16px;
+  }
+  #sidebar-foot .hint { font-size: 15px; opacity: .45; margin-bottom: 8px; line-height: 1.4; }
+  #done-badge {
+    border-radius: 8px;
+    padding: 10px;
+    text-align: center;
+    font-size: 15px;
+    font-weight: 700;
+    background: rgba(255,255,255,.06);
+    color: rgba(255,255,255,.3);
+    transition: background .3s, color .3s;
+  }
+  #done-badge.complete { background: #1A6E3C; color: #fff; }
+
+  /* ── MAIN ── */
+  #main {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px 32px 40px;
+  }
+
+  /* ── MODULE HEADER ── */
+  #mod-header {
+    border-radius: 14px;
+    padding: 18px 24px;
+    margin-bottom: 22px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    transition: background .3s, border-color .3s;
+    border: 1px solid transparent;
+  }
+  #mod-header .left { flex: 1; }
+  #mod-header .icon-row { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+  #mod-header .mod-icon { font-size: 28px; }
+  #mod-header .eyebrow-mod { font-size: 15px; letter-spacing: 1.5px; text-transform: uppercase; opacity: .6; margin-bottom: 2px; }
+  #mod-header h2 { font-size: 24px; font-weight: 700; }
+  #mod-tip {
+    border-left: 3px solid transparent;
+    padding: 7px 12px;
+    border-radius: 0 8px 8px 0;
+    font-size: 15px;
+    font-style: italic;
+    opacity: .88;
+    margin-top: 8px;
+    line-height: 1.5;
+    transition: background .3s, border-color .3s;
+  }
+  #mod-counter {
+    border-radius: 10px;
+    padding: 10px 16px;
+    text-align: center;
+    min-width: 70px;
+    flex-shrink: 0;
+    transition: background .3s, border-color .3s;
+    border: 2px solid transparent;
+  }
+  #mod-counter .cnt-num { font-size: 28px; font-weight: 700; display: block; }
+  #mod-counter .cnt-lbl { font-size: 15px; opacity: .65; }
+
+  /* ── FIELDS ── */
+  #fields-container { display: flex; flex-direction: column; gap: 16px; }
+  .field-card {
+    background: rgba(255,255,255,.04);
+    border: 1px solid rgba(255,255,255,.08);
+    border-radius: 11px;
+    padding: 16px 20px;
+    transition: background .2s, border-color .2s;
+  }
+  .field-card.filled { border-color: rgba(255,255,255,.2); }
+  .field-label {
+    display: block;
+    font-size: 15px;
+    font-weight: 700;
+    color: rgba(255,255,255,.7);
+    margin-bottom: 9px;
+    line-height: 1.4;
+    transition: color .2s;
+  }
+  .field-card.filled .field-label { color: #fff; }
+  .field-textarea {
+    width: 100%;
+    background: rgba(0,0,0,.32);
+    border: 1px solid rgba(255,255,255,.1);
+    border-radius: 7px;
+    padding: 10px 12px;
+    color: #fff;
+    font-size: 15px;
+    font-family: Georgia, serif;
+    resize: vertical;
+    outline: none;
+    line-height: 1.6;
+    min-height: 80px;
+    transition: border-color .2s;
+  }
+  .field-textarea::placeholder { color: rgba(255,255,255,.28); font-style: italic; }
+  .field-textarea:focus { border-color: rgba(255,255,255,.35); }
+
+  /* ── NAV BUTTONS ── */
+  #nav-row {
+    display: flex;
+    gap: 12px;
+    margin-top: 26px;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .nav-action {
+    border-radius: 9px;
+    padding: 11px 22px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    border: none;
+    transition: opacity .2s, background .2s, transform .1s;
+  }
+  .nav-action:hover:not(:disabled) { opacity: .88; transform: translateY(-1px); }
+  .nav-action:disabled { cursor: not-allowed; opacity: .3; }
+  #btn-prev { background: rgba(255,255,255,.12); color: #fff; border: 1px solid rgba(255,255,255,.15); }
+  #btn-save { background: var(--orange); color: #fff; min-width: 140px; }
+  #btn-save.saved { background: #1A6E3C; }
+  #btn-next { color: #fff; }
+
+  /* ── COMPLETION CARD ── */
+  #completion-card {
+    display: none;
+    margin-top: 28px;
+    background: linear-gradient(135deg, rgba(26,110,60,.15), rgba(26,110,60,.3));
+    border: 2px solid #1A6E3C;
+    border-radius: 14px;
+    padding: 26px 28px;
+    text-align: center;
+    animation: fadeIn .5s ease;
+  }
+  #completion-card.show { display: block; }
+  @keyframes fadeIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:none; } }
+  #completion-card .trophy { font-size: 44px; margin-bottom: 10px; }
+  #completion-card h3 { font-size: 22px; color: #4ade80; margin-bottom: 6px; }
+  #completion-card p { font-size: 16px; opacity: .82; font-family: Georgia, serif; margin-bottom: 18px; }
+  #commitment-box {
+    background: rgba(0,0,0,.3);
+    border-radius: 10px;
+    padding: 16px 20px;
+    text-align: left;
+    margin-bottom: 14px;
+  }
+  #commitment-box .c-lbl { font-size: 15px; font-weight: 700; margin-bottom: 8px; }
+  #commitment-text { font-family: Georgia, serif; font-size: 16px; font-style: italic; color: #fbbf24; line-height: 1.6; }
+  #completion-card .c-hint { font-size: 15px; opacity: .5; font-style: italic; }
+  #btn-print {
+    margin-top: 14px;
+    background: rgba(255,255,255,.1);
+    border: 1px solid rgba(255,255,255,.2);
+    border-radius: 8px;
+    padding: 10px 24px;
+    color: #fff;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background .2s;
+  }
+  #btn-print:hover { background: rgba(255,255,255,.18); }
+
+  /* ── PRINT ── */
+  @media print {
+    #header, #meta-bar, #progress-track, #sidebar, #nav-row { display: none !important; }
+    #body { display: block; overflow: visible; }
+    #main { padding: 16px; overflow: visible; }
+    body { background: #fff; color: #000; }
+    #mod-header, .field-card { border: 1px solid #ccc !important; background: #f8f8f8 !important; }
+    .field-textarea { border: 1px solid #ccc !important; background: #fff !important; color: #000 !important; }
+    #completion-card.show { display: block !important; background: #f0fff4 !important; border-color: #1A6E3C !important; }
+    #print-all-modules { display: block !important; }
+    .module-section { page-break-before: always; }
+  }
+  #print-all-modules { display: none; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div id="header">
+  <div>
+    <div class="eyebrow">Speaker Lab · Cámara de Comercio de Cartagena · 17 Jun 2026</div>
+    <h1>CX MAG — Tu Mapa de Experiencia del Cliente</h1>
+  </div>
+  <div id="pct-badge">
+    <span class="big" id="pct-num">0%</span>
+    <span class="small">completado</span>
+  </div>
+</div>
+
+<!-- META BAR -->
+<div id="meta-bar">
+  <input id="inp-nombre" type="text" placeholder="Tu nombre completo" oninput="updateMeta()">
+  <input id="inp-empresa" type="text" placeholder="Nombre de tu empresa / organización" oninput="updateMeta()">
+  <span id="fields-count">0/20 campos</span>
+</div>
+
+<!-- PROGRESS -->
+<div id="progress-track"><div id="progress-fill"></div></div>
+
+<!-- BODY -->
+<div id="body">
+
+  <!-- SIDEBAR -->
+  <nav id="sidebar">
+    <div id="nav-buttons"></div>
+    <div id="sidebar-foot">
+      <div class="hint">Completa todos los módulos para obtener tu plan personalizado</div>
+      <div id="done-badge">20 campos restantes</div>
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <div id="main">
+    <div id="mod-header">
+      <div class="left">
+        <div class="icon-row">
+          <span class="mod-icon" id="mod-icon"></span>
+          <div>
+            <div class="eyebrow-mod" id="mod-subtitle"></div>
+            <h2 id="mod-title"></h2>
+          </div>
+        </div>
+        <div id="mod-tip"></div>
+      </div>
+      <div id="mod-counter">
+        <span class="cnt-num" id="cnt-num">0/4</span>
+        <span class="cnt-lbl">completado</span>
+      </div>
+    </div>
+
+    <div id="fields-container"></div>
+
+    <div id="nav-row">
+      <button class="nav-action" id="btn-prev" onclick="navigate(-1)">← Módulo anterior</button>
+      <button class="nav-action" id="btn-save" onclick="saveProgress()">Guardar progreso</button>
+      <button class="nav-action" id="btn-next" onclick="navigate(1)">Siguiente módulo →</button>
+    </div>
+
+    <div id="completion-card">
+      <div class="trophy">🎉</div>
+      <h3>¡CX MAG Completo!</h3>
+      <p id="completion-name">Tienes tu plan personalizado de Customer Experience listo para implementar.</p>
+      <div id="commitment-box">
+        <div class="c-lbl">🎯 Tu compromiso público:</div>
+        <div id="commitment-text">—</div>
+      </div>
+      <div class="c-hint">Imprime tu CX MAG completo. Es tu hoja de ruta hacia un servicio que fideliza.</div>
+      <br>
+      <button id="btn-print" onclick="printAll()">🖨️ Imprimir / Guardar como PDF (todos los módulos)</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const MODULES = [
+  {
+    id: 1, key: "cliente", icon: "👤",
+    title: "Mi Cliente Ideal",
+    subtitle: "Módulo 1 — El nuevo estándar del cliente",
+    color: "#1B2A5E", accent: "#3B5EA6",
+    tip: "El cliente de hoy compara tu servicio con Amazon, Rappi y Netflix. ¿Estás a la altura?",
+    fields: [
+      { id: "nombre", label: "¿Quién es mi cliente principal?",
+        placeholder: "Describe su perfil: edad, sector, necesidades clave, a qué se dedica..." },
+      { id: "expectativa", label: "¿Qué espera de mi empresa?",
+        placeholder: "¿Qué promete tu empresa y qué espera recibir realmente el cliente?" },
+      { id: "canal", label: "¿Por dónde me contacta y cómo prefiere ser atendido?",
+        placeholder: "WhatsApp, teléfono, presencial, redes sociales, correo electrónico..." },
+      { id: "estandar", label: "¿Con qué otras empresas me compara mi cliente?",
+        placeholder: "¿Quién más atiende a tu cliente? ¿Qué estándar de servicio ya ha vivido?" },
+    ]
+  },
+  {
+    id: 2, key: "momentos", icon: "⚡",
+    title: "Mis Momentos de Verdad",
+    subtitle: "Módulo 2 — Customer Journey y CX",
+    color: "#C0392B", accent: "#E74C3C",
+    tip: "Cada interacción construye o destruye la relación. Identifica dónde estás fallando hoy.",
+    fields: [
+      { id: "zmot", label: "ZMOT — ¿Qué encuentran antes de contactarme? (Google, reseñas, redes)",
+        placeholder: "¿Qué dice internet de tu empresa? ¿Tus reseñas en Google Maps son positivas?" },
+      { id: "fmot", label: "FMOT — ¿Cómo es el primer contacto? (llamada, entrada, WhatsApp)",
+        placeholder: "¿Qué ocurre en los primeros 30 segundos? ¿Hay respuesta rápida?" },
+      { id: "smot", label: "SMOT — ¿La experiencia cumplió lo prometido?",
+        placeholder: "¿Tu producto o servicio entregado supera, iguala o decepciona la expectativa?" },
+      { id: "critico", label: "🎯 Mi momento más crítico y cómo lo mejoraré",
+        placeholder: "Identifica el punto de mayor fricción y escribe UNA acción de mejora concreta." },
+    ]
+  },
+  {
+    id: 3, key: "metricas", icon: "📊",
+    title: "Mi Panel de Métricas",
+    subtitle: "Módulo 3 — NPS, CSAT y Esfuerzo del Cliente",
+    color: "#1A6E3C", accent: "#27AE60",
+    tip: "Solo el 30% de empresas colombianas mide la CX. Empieza hoy con 3 preguntas simples.",
+    fields: [
+      { id: "nps_q", label: "Mi pregunta NPS — lealtad a largo plazo (escala 0-10)",
+        placeholder: 'Ej: "Del 0 al 10, ¿qué tan probable es que nos recomiende a un amigo o familiar?"' },
+      { id: "csat_q", label: "Mi pregunta CSAT — satisfacción puntual (escala 1-5)",
+        placeholder: 'Ej: "¿Qué tan satisfecho quedó con la atención recibida hoy?" (1=Muy mal, 5=Excelente)' },
+      { id: "ces_q", label: "Mi pregunta CES — esfuerzo del cliente (escala 1-7)",
+        placeholder: 'Ej: "¿Qué tan fácil fue resolver su solicitud con nosotros?" (1=Muy difícil, 7=Muy fácil)' },
+      { id: "cuando", label: "¿Cuándo y cómo enviaré estas preguntas?",
+        placeholder: "¿Por WhatsApp tras cada compra? ¿Email semanal? ¿QR en el punto de venta? Define canal y momento." },
+    ]
+  },
+  {
+    id: 4, key: "quejas", icon: "🛡️",
+    title: "Mi Protocolo de Quejas",
+    subtitle: "Módulo 4 — Manejo y recuperación de servicio",
+    color: "#7D3C98", accent: "#9B59B6",
+    tip: "El 95% de clientes que recibe una buena respuesta a su queja se vuelve más leal. ¡Úsalo!",
+    fields: [
+      { id: "recibe", label: "¿Quién recibe las quejas en mi empresa y por qué canal?",
+        placeholder: "Define la persona responsable y el canal oficial para recibir quejas (WhatsApp, correo, presencial...)." },
+      { id: "protocolo", label: "Mi protocolo LATTE personalizado",
+        placeholder: "Listen (escucho): ___ / Acknowledge (reconozco): ___ / Take Action (actúo): ___ / Thank (agradezco): ___ / Explain (explico): ___" },
+      { id: "tiempo", label: "¿En cuánto tiempo debo resolver una queja?",
+        placeholder: "Respuesta inicial en máximo ___ horas. Solución definitiva en máximo ___ días hábiles." },
+      { id: "aprendizaje", label: "¿Cómo convertiré cada queja en mejora interna?",
+        placeholder: "¿Registro las quejas en algún sistema? ¿Las reviso con el equipo? ¿Cómo evito que se repitan?" },
+    ]
+  },
+  {
+    id: 5, key: "fidelizacion", icon: "⭐",
+    title: "Mi Plan de Fidelización",
+    subtitle: "Módulo 5 — De la satisfacción al FAN",
+    color: "#E8521A", accent: "#F39C12",
+    tip: "Retener un cliente cuesta 5-7x menos que adquirir uno nuevo. Aquí diseñas exactamente cómo.",
+    fields: [
+      { id: "accion1", label: "Acción 1 — Esta semana (0-7 días)",
+        placeholder: "Algo simple y concreto: llamar a 5 clientes inactivos, activar respuesta automática en WhatsApp, publicar en Google Maps..." },
+      { id: "accion2", label: "Acción 2 — Este mes (8-30 días)",
+        placeholder: "Algo que requiere preparación: protocolo de quejas escrito, capacitación del equipo, encuesta de satisfacción implementada..." },
+      { id: "accion3", label: "Acción 3 — Este trimestre (31-90 días)",
+        placeholder: "Una iniciativa estratégica: programa de fidelización, medición NPS mensual, rediseño de un momento de verdad clave..." },
+      { id: "compromiso", label: "🎯 Mi compromiso público de hoy",
+        placeholder: "Completa esta frase: 'Me comprometo a [acción concreta] antes del [fecha] para que mis clientes [resultado esperado]...'" },
+    ]
+  }
+];
+
+// State
+const data = {};
+let active = 0;
+let savedOnce = false;
+
+function getKey(modKey, fieldId) { return `${modKey}_${fieldId}`; }
+
+function countFilled(modKey) {
+  const mod = MODULES.find(m => m.key === modKey);
+  return mod.fields.filter(f => (data[getKey(modKey, f.id)] || "").trim()).length;
+}
+
+function totalFilled() {
+  return MODULES.reduce((acc, m) => acc + countFilled(m.key), 0);
+}
+
+const TOTAL = MODULES.reduce((acc, m) => acc + m.fields.length, 0);
+
+function pct() { return Math.round((totalFilled() / TOTAL) * 100); }
+
+// ── RENDER SIDEBAR ──
+function renderSidebar() {
+  const container = document.getElementById("nav-buttons");
+  container.innerHTML = "";
+  MODULES.forEach((m, i) => {
+    const f = countFilled(m.key);
+    const done = f === m.fields.length;
+    const isActive = i === active;
+    const btn = document.createElement("button");
+    btn.className = "nav-btn" + (isActive ? " active" : "");
+    btn.style.setProperty("--btn-color", m.color);
+    btn.innerHTML = `
+      <span class="nav-icon">${done ? "✅" : m.icon}</span>
+      <div class="nav-info">
+        <div class="nav-num">Módulo ${m.id}</div>
+        <div class="nav-title">${m.title}</div>
+        <div class="nav-mini-bar">
+          <div class="nav-mini-fill" style="width:${(f/m.fields.length)*100}%;background:${m.color}"></div>
+        </div>
+      </div>`;
+    btn.onclick = () => { active = i; render(); };
+    container.appendChild(btn);
+  });
+
+  const p = pct();
+  const remaining = TOTAL - totalFilled();
+  const badge = document.getElementById("done-badge");
+  if (remaining === 0) {
+    badge.textContent = "🎉 CX MAG Completo";
+    badge.classList.add("complete");
+  } else {
+    badge.textContent = `${remaining} campo${remaining !== 1 ? "s" : ""} restante${remaining !== 1 ? "s" : ""}`;
+    badge.classList.remove("complete");
+  }
+}
+
+// ── RENDER MAIN ──
+function renderMain() {
+  const mod = MODULES[active];
+
+  // Header
+  const hdr = document.getElementById("mod-header");
+  hdr.style.background = `${mod.color}18`;
+  hdr.style.borderColor = `${mod.color}44`;
+  document.getElementById("mod-icon").textContent = mod.icon;
+  document.getElementById("mod-subtitle").textContent = mod.subtitle;
+  document.getElementById("mod-title").textContent = mod.title;
+
+  const tip = document.getElementById("mod-tip");
+  tip.textContent = "💡 " + mod.tip;
+  tip.style.background = `${mod.color}28`;
+  tip.style.borderLeftColor = mod.color;
+
+  const f = countFilled(mod.key);
+  document.getElementById("cnt-num").textContent = `${f}/${mod.fields.length}`;
+  const ctr = document.getElementById("mod-counter");
+  ctr.style.background = `${mod.color}28`;
+  ctr.style.borderColor = mod.color;
+
+  // Fields
+  const container = document.getElementById("fields-container");
+  container.innerHTML = "";
+  mod.fields.forEach(field => {
+    const val = data[getKey(mod.key, field.id)] || "";
+    const hasVal = val.trim().length > 0;
+    const card = document.createElement("div");
+    card.className = "field-card" + (hasVal ? " filled" : "");
+    card.style.background = hasVal ? `${mod.color}10` : "";
+    card.style.borderColor = hasVal ? `${mod.color}55` : "";
+    card.innerHTML = `
+      <label class="field-label">${hasVal ? "✓ " : ""}${field.label}</label>
+      <textarea class="field-textarea" rows="3" placeholder="${field.placeholder}">${val}</textarea>`;
+    const ta = card.querySelector("textarea");
+    ta.addEventListener("input", () => {
+      data[getKey(mod.key, field.id)] = ta.value;
+      savedOnce = false;
+      document.getElementById("btn-save").textContent = "Guardar progreso";
+      document.getElementById("btn-save").classList.remove("saved");
+      updateProgress();
+      renderSidebar();
+      // Live update card style
+      const filled = ta.value.trim().length > 0;
+      card.className = "field-card" + (filled ? " filled" : "");
+      card.style.background = filled ? `${mod.color}10` : "";
+      card.style.borderColor = filled ? `${mod.color}55` : "";
+      card.querySelector(".field-label").textContent = (filled ? "✓ " : "") + field.label;
+      ta.style.borderColor = filled ? `${mod.color}66` : "";
+      // Update counter
+      document.getElementById("cnt-num").textContent = `${countFilled(mod.key)}/${mod.fields.length}`;
+      // Completion card
+      checkCompletion();
+    });
+    ta.style.borderColor = hasVal ? `${mod.color}66` : "";
+    container.appendChild(card);
+  });
+
+  // Nav
+  const btnPrev = document.getElementById("btn-prev");
+  const btnNext = document.getElementById("btn-next");
+  btnPrev.disabled = active === 0;
+  btnNext.disabled = active === MODULES.length - 1;
+  btnNext.style.background = active === MODULES.length - 1 ? "rgba(255,255,255,.07)" : mod.color;
+}
+
+function updateProgress() {
+  const p = pct();
+  document.getElementById("pct-num").textContent = p + "%";
+  document.getElementById("pct-num").style.color = p === 100 ? "#4ade80" : "#fbbf24";
+  document.getElementById("progress-fill").style.width = p + "%";
+  const tf = totalFilled();
+  document.getElementById("fields-count").textContent = `${tf}/${TOTAL} campos completados`;
+}
+
+function checkCompletion() {
+  const card = document.getElementById("completion-card");
+  if (totalFilled() === TOTAL) {
+    card.classList.add("show");
+    const nombre = document.getElementById("inp-nombre").value.trim();
+    const empresa = document.getElementById("inp-empresa").value.trim();
+    let nameStr = nombre ? `<strong>${nombre}</strong>` : "";
+    if (empresa) nameStr += (nameStr ? ` — ${empresa}` : empresa);
+    document.getElementById("completion-name").innerHTML = (nameStr ? nameStr + "<br>" : "") +
+      "Tienes tu plan personalizado de Customer Experience listo para implementar.";
+    const comp = data["fidelizacion_compromiso"] || "";
+    document.getElementById("commitment-text").textContent = comp
+      ? `"${comp}"`
+      : "Completa el bloque de fidelización para ver tu compromiso aquí.";
+  } else {
+    card.classList.remove("show");
+  }
+}
+
+function render() {
+  renderSidebar();
+  renderMain();
+  updateProgress();
+  checkCompletion();
+}
+
+function navigate(dir) {
+  const next = active + dir;
+  if (next >= 0 && next < MODULES.length) {
+    active = next;
+    render();
+    document.getElementById("main").scrollTo({ top: 0, behavior: "smooth" });
+  }
+}
+
+function saveProgress() {
+  savedOnce = true;
+  const btn = document.getElementById("btn-save");
+  btn.textContent = "✓ Guardado";
+  btn.classList.add("saved");
+  setTimeout(() => {
+    btn.textContent = "Guardar progreso";
+    btn.classList.remove("saved");
+  }, 2500);
+}
+
+function updateMeta() { checkCompletion(); }
+
+function printAll() {
+  const nombre = document.getElementById("inp-nombre").value.trim();
+  const empresa = document.getElementById("inp-empresa").value.trim();
+  const comp = data["fidelizacion_compromiso"] || "—";
+
+  const moduleColors = {
+    cliente:      { color: "#1B2A5E", bg: "#e8ecf8" },
+    momentos:     { color: "#C0392B", bg: "#fdecea" },
+    metricas:     { color: "#1A6E3C", bg: "#e8f5e9" },
+    quejas:       { color: "#7D3C98", bg: "#f3e8fd" },
+    fidelizacion: { color: "#E8521A", bg: "#fff3ee" },
+  };
+
+  let html = `<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8">
+  <title>CX MAG — ${nombre || "Mi empresa"}</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Arial, sans-serif; background: #fff; color: #111; padding: 24px; font-size: 15px; }
+    .doc-header { text-align: center; border-bottom: 4px solid #E8521A; padding-bottom: 16px; margin-bottom: 28px; }
+    .doc-header .brand { font-size: 28px; font-weight: 900; color: #1B2A5E; letter-spacing: 1px; }
+    .doc-header .brand span { color: #E8521A; }
+    .doc-header .sub { font-size: 15px; color: #555; margin-top: 4px; }
+    .doc-header .meta { font-size: 16px; font-weight: 700; color: #1B2A5E; margin-top: 10px; }
+    .module-block { margin-bottom: 32px; page-break-inside: avoid; }
+    .module-block + .module-block { page-break-before: always; }
+    .mod-title-bar { padding: 12px 18px; border-radius: 8px 8px 0 0; display: flex; align-items: center; gap: 10px; }
+    .mod-title-bar .icon { font-size: 22px; }
+    .mod-title-bar .texts { flex: 1; }
+    .mod-title-bar .sub-lbl { font-size: 15px; text-transform: uppercase; letter-spacing: 1.5px; opacity: .75; }
+    .mod-title-bar h2 { font-size: 20px; font-weight: 800; margin: 0; }
+    .mod-tip { font-size: 15px; font-style: italic; padding: 8px 14px; border-left: 3px solid; margin: 0; }
+    .fields-wrap { border: 1px solid #ddd; border-top: none; border-radius: 0 0 8px 8px; padding: 16px; display: flex; flex-direction: column; gap: 14px; }
+    .field-block { background: #fafafa; border: 1px solid #e0e0e0; border-radius: 6px; padding: 12px 14px; }
+    .field-q { font-size: 15px; font-weight: 700; color: #333; margin-bottom: 6px; }
+    .field-a { font-size: 15px; font-family: Georgia, serif; color: #111; line-height: 1.6; min-height: 24px; white-space: pre-wrap; }
+    .field-a.empty { color: #aaa; font-style: italic; }
+    .commitment-block { margin-top: 28px; border: 2px solid #1A6E3C; border-radius: 10px; padding: 18px 22px; background: #f0fff4; text-align: center; }
+    .commitment-block h3 { color: #1A6E3C; font-size: 18px; margin-bottom: 8px; }
+    .commitment-block p { font-size: 17px; font-style: italic; color: #1B2A5E; font-family: Georgia, serif; line-height: 1.6; }
+    .footer { margin-top: 32px; text-align: center; font-size: 15px; color: #aaa; border-top: 1px solid #eee; padding-top: 12px; }
+  </style></head><body>
+  <div class="doc-header">
+    <div class="brand">CX <span>MAG</span></div>
+    <div class="sub">Speaker Lab · Cámara de Comercio de Cartagena · 17 Jun 2026</div>
+    ${nombre || empresa ? `<div class="meta">${nombre}${nombre && empresa ? " — " : ""}${empresa}</div>` : ""}
+  </div>`;
+
+  MODULES.forEach((mod, idx) => {
+    const c = moduleColors[mod.key];
+    html += `<div class="module-block">
+      <div class="mod-title-bar" style="background:${c.color};color:#fff;">
+        <span class="icon">${mod.icon}</span>
+        <div class="texts">
+          <div class="sub-lbl">${mod.subtitle}</div>
+          <h2>${mod.title}</h2>
+        </div>
+      </div>
+      <div class="mod-tip" style="background:${c.bg};border-color:${c.color};color:${c.color}">💡 ${mod.tip}</div>
+      <div class="fields-wrap">`;
+
+    mod.fields.forEach(field => {
+      const val = (data[getKey(mod.key, field.id)] || "").trim();
+      html += `<div class="field-block">
+        <div class="field-q">${field.label}</div>
+        <div class="field-a${val ? "" : " empty"}">${val || "Sin completar"}</div>
+      </div>`;
+    });
+
+    html += `</div></div>`;
+  });
+
+  html += `<div class="commitment-block">
+    <h3>🎯 Mi compromiso público</h3>
+    <p>${comp !== "—" ? `"${comp}"` : "Sin completar"}</p>
+  </div>
+  <div class="footer">CX MAG · Speaker Lab — Servicio que Fideliza · ${new Date().toLocaleDateString("es-CO", {day:"2-digit",month:"long",year:"numeric"})}</div>
+  </body></html>`;
+
+  const win = window.open("", "_blank");
+  win.document.write(html);
+  win.document.close();
+  win.focus();
+  setTimeout(() => win.print(), 600);
+}
+
+// Init
+render();
+</script>
+</body>
+</html>
